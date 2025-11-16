@@ -39,7 +39,7 @@ class DataUtils:
         exist_chunk_files=[f for f in os.listdir(file_path) if f.startswith(f"{mode}_{num_nodes}_chunk_dataset_{chunk_size}_")]
         idx_offset=len(exist_chunk_files)
         chunk_list=[dataset_list[i:i+chunk_size] for i in range(0,len(dataset_list),chunk_size)]
-        for idx,chunk in tqdm(enumerate(chunk_list),desc=f"Saving {mode}_{num_nodes}_chunk_dataset_{chunk_size}..."):
+        for idx,chunk in tqdm(enumerate(chunk_list),total=len(chunk_list),desc=f"Saving {mode}_{num_nodes}_chunk_dataset_{chunk_size}..."):
             DataUtils.save_to_pickle(data=chunk,file_name=f"{mode}_{num_nodes}_chunk_dataset_{chunk_size}_{idx+idx_offset}",path='tgnn',dir_type=dir_type)
         print(f"Save {mode}_{num_nodes}_chunk_dataset_{chunk_size}!")
 
@@ -57,7 +57,7 @@ class DataUtils:
         idx_offset=len(exist_chunk_files)
 
         chunk_list=[dataseq_list[i:i+chunk_size] for i in range(0,len(dataseq_list),chunk_size)]
-        for idx,chunk in tqdm(enumerate(chunk_list),desc=f"Saving {mode}_{num_nodes}_chunk_dataseq_{chunk_size}..."):
+        for idx,chunk in tqdm(enumerate(chunk_list),total=len(chunk_list),desc=f"Saving {mode}_{num_nodes}_chunk_dataseq_{chunk_size}..."):
             DataUtils.save_to_pickle(data=chunk,file_name=f"{mode}_{num_nodes}_chunk_dataseq_{chunk_size}_{idx+idx_offset}",path='tgnn',dir_type=dir_type)
         print(f"Save {mode}_{num_nodes}_chunk_dataseq_{chunk_size}!")
 

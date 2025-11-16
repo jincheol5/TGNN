@@ -1,4 +1,8 @@
+import os
 import random
+import pickle
+import threading
+import queue
 import numpy as np
 import pandas as pd
 import networkx as nx
@@ -10,7 +14,7 @@ from .graph_utils import GraphUtils
 
 class ModelTrainUtils:
     @staticmethod
-    def get_data_loader(data_seq:list,batch_size:int):
+    def get_data_loader(dataseq:list,batch_size:int):
         """
         Input:
             data_seq: List of data
@@ -39,18 +43,18 @@ class ModelTrainUtils:
                     label: [N,1]
         """
         data_loader=[]
-        edge_index=data_seq[-1]['edge_index'] # [2,E]
-        adj_mask=data_seq[-1]['adj_mask'] # [N,N]
-        label=data_seq[-1]['label'] # [N,1]
-        for i in range(0,len(data_seq),batch_size):
-            batch_data_seq=data_seq[i:i+batch_size]
+        edge_index=dataseq[-1]['edge_index'] # [2,E]
+        adj_mask=dataseq[-1]['adj_mask'] # [N,N]
+        label=dataseq[-1]['label'] # [N,1]
+        for i in range(0,len(dataseq),batch_size):
+            batch_dataseq=dataseq[i:i+batch_size]
 
-            batch_x=torch.stack([e['x'] for e in batch_data_seq],dim=0) # [B,N,1]
-            batch_t=torch.stack([e['t'] for e in batch_data_seq],dim=0) # [B,N,1]
-            batch_src=torch.tensor([e['src'] for e in batch_data_seq],dtype=torch.int32).unsqueeze(1) # [B,1]
-            batch_tar=torch.tensor([e['tar'] for e in batch_data_seq],dtype=torch.int32).unsqueeze(1) # [B,1]
-            batch_n_mask=torch.stack([e['n_mask'] for e in batch_data_seq],dim=0) # [B,N,]
-            batch_tar_label=torch.tensor([e['tar_label'] for e in batch_data_seq],dtype=torch.float32).unsqueeze(1) # [B,1]
+            batch_x=torch.stack([e['x'] for e in batch_dataseq],dim=0) # [B,N,1]
+            batch_t=torch.stack([e['t'] for e in batch_dataseq],dim=0) # [B,N,1]
+            batch_src=torch.tensor([e['src'] for e in batch_dataseq],dtype=torch.int32).unsqueeze(1) # [B,1]
+            batch_tar=torch.tensor([e['tar'] for e in batch_dataseq],dtype=torch.int32).unsqueeze(1) # [B,1]
+            batch_n_mask=torch.stack([e['n_mask'] for e in batch_dataseq],dim=0) # [B,N,]
+            batch_tar_label=torch.tensor([e['tar_label'] for e in batch_dataseq],dtype=torch.float32).unsqueeze(1) # [B,1]
 
             data_loader.append({
                 'x':batch_x, # [B,N,1]
@@ -64,6 +68,17 @@ class ModelTrainUtils:
                 'label':label # [N,1]
             })
         return data_loader
+
+    @staticmethod
+    def chunk_loader_worker(chunk_paths:str,buffer_queue:queue.Queue,max_buffer:int=2):
+        """
+        chunk_paths: chunk 파일 리스트
+        """
+        for path in chunk_paths:
+            with open(path,"rb") as f:
+                data=pickle.load(f)
+            buffer_queue.put(data) # 버퍼가 꽉 차면 자동 대기
+        buffer_queue.put(None) # 종료 신호
 
 class EarlyStopping:
     def __init__(self,patience=1):
