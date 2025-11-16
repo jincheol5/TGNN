@@ -9,6 +9,6 @@ count=0
 for dataset in dataset_list:
     for dataseq in dataset:
         label=dataseq[-1]['label']
-        if not label:
+        if label is None or label.numel()==0:
             count+=1
 print(f"count: {count}")
