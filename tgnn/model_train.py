@@ -70,6 +70,12 @@ class ModelTrainer:
                     tar_label_list=[tar_label.to(device) for tar_label in tar_label_list]
                     last_label=last_label.to(device)
 
+                    if any(lbl is None or lbl.numel()==0 for lbl in tar_label_list):
+                        print("Empty tar_label_list element → skip batch")
+
+                    if last_label is None or last_label.numel()==0:
+                        print("Empty last_label → skip batch")
+
                     output=model(data_loader=data_loader,device=device)
                     pred_step_logit_list=output['step_logit_list']
                     pred_last_logit=output['last_logit']
@@ -83,7 +89,7 @@ class ModelTrainer:
 
                     total_loss=step_loss+last_loss
                     loss_list.append(total_loss)
-                    
+
                     print(f"loss: {total_loss.item()}")
 
                     # back propagation
