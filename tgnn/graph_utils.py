@@ -65,7 +65,7 @@ class GraphUtils:
         return gamma
 
     @staticmethod
-    def convert_to_data_seq(event_stream:list,num_nodes:int,source_id:int,edge_index:torch.Tensor):
+    def convert_to_dataseq(event_stream:list,num_nodes:int,source_id:int,edge_index:torch.Tensor):
         """
         Input:
             event_stream: List of edge_event tuple
@@ -73,7 +73,7 @@ class GraphUtils:
             source_id: source node id
             edge_index: [2,E]
         Output:
-            data_seq: List of data
+            dataseq: List of data
                 data:
                     x: [N,1]
                     t: [N,1]
@@ -85,7 +85,7 @@ class GraphUtils:
                     adj_mask: [N,N]
                     label: [N,1], label of all nodes
         """
-        data_seq=[]
+        dataseq=[]
         x=torch.zeros((num_nodes,1),dtype=torch.float) # [N,1]
         x[source_id,0]=1.0
         adj_mask=GraphUtils.get_adj_mask(num_nodes=num_nodes,edge_index=edge_index) # [N,N]
@@ -119,8 +119,8 @@ class GraphUtils:
             data['adj_mask']=adj_mask
             data['label']=gamma[:,0:1]
 
-            data_seq.append(data)
-        return data_seq
+            dataseq.append(data)
+        return dataseq
 
     @staticmethod
     def convert_to_dataset(graph:nx.DiGraph):
@@ -135,7 +135,7 @@ class GraphUtils:
         edge_index=GraphUtils.get_edge_index(graph=graph)
         event_stream=GraphUtils.get_event_stream(graph=graph)
         dataset=[
-            GraphUtils.convert_to_data_seq(event_stream=event_stream,num_nodes=num_nodes,source_id=source_id,edge_index=edge_index) 
+            GraphUtils.convert_to_dataseq(event_stream=event_stream,num_nodes=num_nodes,source_id=source_id,edge_index=edge_index) 
             for source_id in range(num_nodes)]
         return dataset
 

@@ -23,12 +23,24 @@ def app_data(config: dict):
             all_dataset_list=[]
             for _,dataset_list in dataset_list_dict.items():
                 all_dataset_list+=dataset_list
-            DataUtils.save_dataset_list(
-                dataset_list=all_dataset_list,
-                mode=config['mode'],
-                num_nodes=config['num_nodes'],
-                chunk_size=config['chunk_size'],
-                dir_type=config['mode'])
+            
+            match config['mode']:
+                case 'train':
+                    DataUtils.save_to_dataset_list(
+                        dataset_list=all_dataset_list,
+                        mode=config['mode'],
+                        num_nodes=config['num_nodes'],
+                        chunk_size=config['chunk_size'],
+                        dir_type=config['mode']
+                    )
+                case 'val'|'test':
+                    DataUtils.save_to_dataseq_list(
+                        dataset_list=all_dataset_list,
+                        mode=config['mode'],
+                        num_nodes=config['num_nodes'],
+                        chunk_size=config['chunk_size'],
+                        dir_type=config['mode']
+                    )
 
         case 2:
             """
@@ -43,13 +55,24 @@ def app_data(config: dict):
             graph_list_dict=DataUtils.load_from_pickle(file_name=f"{config['mode']}_{config['num_nodes']}",path="trne",dir_type="graph")
             graph_list=graph_list_dict[config['graph_type']]
             dataset_list=GraphUtils.convert_to_dataset_list(graph_list=graph_list,graph_type=config['graph_type'])
-            DataUtils.save_dataset_list(
-                dataset_list=dataset_list,
-                mode=config['mode'],
-                num_nodes=config['num_nodes'],
-                chunk_size=config['chunk_size'],
-                dir_type=config['mode'])
 
+            match config['mode']:
+                case 'train':
+                    DataUtils.save_to_dataset_list(
+                        dataset_list=all_dataset_list,
+                        mode=config['mode'],
+                        num_nodes=config['num_nodes'],
+                        chunk_size=config['chunk_size'],
+                        dir_type=config['mode']
+                    )
+                case 'val'|'test':
+                    DataUtils.save_to_dataseq_list(
+                        dataset_list=all_dataset_list,
+                        mode=config['mode'],
+                        num_nodes=config['num_nodes'],
+                        chunk_size=config['chunk_size'],
+                        dir_type=config['mode']
+                    )
 
 if __name__=="__main__":
     """
