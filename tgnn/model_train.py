@@ -73,6 +73,11 @@ class ModelTrainer:
                     optimizer.zero_grad()
                     total_loss.backward()
                     optimizer.step()
+                
+                # 메모리 정리
+                del dataset_list
+                del data_loader_list
+                del data_loader
 
             # producer thread 종료 대기
             loader_thread.join()
