@@ -46,7 +46,11 @@ class ModelTrainer:
             
             while True:
                 dataset_list=buffer_queue.get()
+
+                print(f"get one chunk at epoch {epoch+1}")
+
                 if dataset_list is None:
+                    print(f"finish to get chunk at epoch {epoch+1}")
                     break
                 
                 data_loader_list=[]
