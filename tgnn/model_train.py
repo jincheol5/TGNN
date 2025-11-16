@@ -44,10 +44,11 @@ class ModelTrainer:
             )
             loader_thread.start()
             
+            total_chunk=0
             while True:
                 dataset_list=buffer_queue.get()
-
-                print(f"get one chunk at epoch {epoch+1}")
+                total_chunk+=1
+                print(f"get one chunk at epoch {epoch+1} total_chunk: {total_chunk}")
 
                 if dataset_list is None:
                     print(f"finish to get chunk at epoch {epoch+1}")
@@ -72,6 +73,7 @@ class ModelTrainer:
                     last_loss=Metrics.compute_last_tR_loss(logit=pred_last_logit,label=last_label)
                     total_loss=step_loss+last_loss
                     loss_list.append(total_loss)
+                    print(f"loss: {total_loss.item()}")
 
                     # back propagation
                     optimizer.zero_grad()

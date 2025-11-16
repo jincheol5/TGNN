@@ -77,7 +77,7 @@ if __name__=="__main__":
     parser.add_argument("--patience",type=int,default=10)
     parser.add_argument("--seed",type=int,default=1) # 1, 2, 3
     parser.add_argument("--lr",type=float,default=0.0005) # 0.001, 0,0005
-    parser.add_argument("--batch_size",type=int,default=32) # 8, 16
+    parser.add_argument("--batch_size",type=int,default=32) # 32, 64
     parser.add_argument("--latent_dim",type=int,default=32)
     
     # 학습 로그 및 저장
