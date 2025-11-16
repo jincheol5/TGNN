@@ -18,7 +18,7 @@ def app_data(config: dict):
             val_20
             test_20
             """
-            graph_list_dict=DataUtils.load_from_pickle(file_name="train_20",path="trne",dir_type="graph")
+            graph_list_dict=DataUtils.load_from_pickle(file_name=f"{config['mode']}_{config['num_nodes']}",path="trne",dir_type="graph")
             dataset_list_dict=GraphUtils.convert_to_dataset_list_dict(graph_list_dict=graph_list_dict)
             all_dataset_list=[]
             for _,dataset_list in dataset_list_dict.items():
@@ -40,7 +40,7 @@ def app_data(config: dict):
             test_500
             test_1000
             """
-            graph_list_dict=DataUtils.load_from_pickle(file_name="train_20",path="trne",dir_type="graph")
+            graph_list_dict=DataUtils.load_from_pickle(file_name=f"{config['mode']}_{config['num_nodes']}",path="trne",dir_type="graph")
             graph_list=graph_list_dict[config['graph_type']]
             dataset_list=GraphUtils.convert_to_dataset_list(graph_list=graph_list,graph_type=config['graph_type'])
             DataUtils.save_dataset_list(
