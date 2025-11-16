@@ -143,15 +143,16 @@ class GraphAttention(nn.Module):
             nn.Linear(latent_dim,latent_dim)
         )
 
-    def forward(self,target,h,neighbor_mask,step:Literal['step','last']='step'):
+    def forward(self,tar_vec,h,neighbor_mask,tar_idx=None,step:Literal['step','last']='step'):
         """
         Input:
             step
-                target: [batch_size,node_dim+latent_dim+latent_dim], target node feature||time_feature
+                tar_idx: [B,1]
+                tar_vec: [batch_size,node_dim+latent_dim+latent_dim], target node feature||time_feature
                 h: [batch_size,N,node_dim+latent_dim+latent_dim], all node feature||time_feature
                 neighbor_mask: [batch_size,N,], neighbor node mask
             last
-                target: [N,node_dim+latent_dim+latent_dim], target node feature||time_feature
+                tar_vec: [N,node_dim+latent_dim+latent_dim], target node feature||time_feature
                 h: [N,node_dim+latent_dim+latent_dim], all node feature||time_feature
                 neighbor_mask: [N,N], neighbor node mask
         Output:
@@ -161,14 +162,19 @@ class GraphAttention(nn.Module):
                 z: [N,latent_dim]
         """
         if step=='step':
-            feature_dim=target.size(1)
+            feature_dim=tar_vec.size(1)
 
-            q=self.query_linear(target) # [batch_size,latent_dim]
+            q=self.query_linear(tar_vec) # [batch_size,latent_dim]
             k=self.key_linear(h) # [batch_size,N,latent_dim]
             v=self.value_linear(h) # [batch_size,N,latent_dim]
 
             q=q.unsqueeze(1) # [batch_size,1,latent_dim]
             attention_scores=torch.matmul(q,k.transpose(1,2))/(feature_dim**0.5) # [batch_size,1,latent_dim] X [batch_size,latent_dim,N] = [batch_size,1,N]
+
+            # 이웃 노드 하나도 없는 경우 확인->없을 경우 자기 자신만 true가 되도록 mask 수정
+            no_neighbor=~neighbor_mask.any(dim=1) # [B,] bool vec, 이웃 없는 행은 true로
+            if no_neighbor.any():
+                neighbor_mask[no_neighbor,tar_idx[no_neighbor,0]]=True
 
             neighbor_mask=neighbor_mask.unsqueeze(1) # [batch_size,1,N]
             attention_scores=attention_scores.masked_fill(~neighbor_mask,float('-inf')) # [batch_size,1,N]
@@ -178,12 +184,12 @@ class GraphAttention(nn.Module):
             neighbor_weight_sum=torch.matmul(attention_weight,v) # [batch_size,1,latent_dim]
             neighbor_weight_sum=neighbor_weight_sum.squeeze(1) # [batch_size,latent_dim]
 
-            z=torch.cat([neighbor_weight_sum,target],dim=-1) # [batch_size,latent_dim||node+latent_dim+latent_dim]
+            z=torch.cat([neighbor_weight_sum,tar_vec],dim=-1) # [batch_size,latent_dim||node+latent_dim+latent_dim]
             z=self.ffn(z) # [batch_size,latent_dim]
         else: # last
-            feature_dim=target.size(1)
+            num_nodes,feature_dim=tar_vec.size()
 
-            q=self.query_linear(target) # [N,latent_dim]
+            q=self.query_linear(tar_vec) # [N,latent_dim]
             k=self.key_linear(h) # [N,latent_dim]
             v=self.value_linear(h) # [N,latent_dim]
 
@@ -193,6 +199,12 @@ class GraphAttention(nn.Module):
 
             attention_scores=torch.matmul(q,k.transpose(1,2))/(feature_dim**0.5) # [N,1,latent_dim] X [1,latent_dim,N](broadcast됨) = [N,1,N] 
 
+            # 이웃 노드 하나도 없는 경우 확인->없을 경우 자기 자신만 true가 되도록 mask 수정
+            no_neighbor=~neighbor_mask.any(dim=1) # [B,] bool vec, 이웃 없는 행은 true로
+            if no_neighbor.any():
+                idx=torch.arange(num_nodes,device=neighbor_mask.device)
+                neighbor_mask[no_neighbor,idx[no_neighbor]]=True
+
             neighbor_mask=neighbor_mask.unsqueeze(1) # [N,1,N] 
             attention_scores=attention_scores.masked_fill(~neighbor_mask,float('-inf'))
 
@@ -201,7 +213,7 @@ class GraphAttention(nn.Module):
             neighbor_weight_sum=torch.matmul(attention_weight,v) # [N,1,latent_dim]
             neighbor_weight_sum=neighbor_weight_sum.squeeze(1) # [N,latent_dim]
 
-            z=torch.cat([neighbor_weight_sum,target],dim=-1) # [N,latent_dim||node+latent_dim+latent_dim]
+            z=torch.cat([neighbor_weight_sum,tar_vec],dim=-1) # [N,latent_dim||node+latent_dim+latent_dim]
             z=self.ffn(z) # [N,latent_dim]
         return z
 
@@ -212,15 +224,15 @@ class GraphSum(nn.Module):
         self.w_2=nn.Linear(in_features=node_dim+latent_dim+latent_dim+latent_dim,out_features=latent_dim)
         self.relu=nn.ReLU()
 
-    def forward(self,target,h,neighbor_mask,step:Literal['step','last']='step'):
+    def forward(self,tar_vec,h,neighbor_mask,tar_idx=None,step:Literal['step','last']='step'):
         """
         Input:
             step
-                target: [batch_size,node_dim+latent_dim+latent_dim], target node feature||time_feature
+                tar_vec: [batch_size,node_dim+latent_dim+latent_dim], target node feature||time_feature
                 h: [batch_size,N,node_dim+latent_dim+latent_dim], all node feature||time_feature
                 neighbor_mask: [batch_size,N,], neighbor node mask
             last
-                target: [N,node_dim+latent_dim+latent_dim], target node feature||time_feature
+                tar_vec: [N,node_dim+latent_dim+latent_dim], target node feature||time_feature
                 h: [N,node_dim+latent_dim+latent_dim], all node feature||time_feature
                 neighbor_mask: [N,N], neighbor node mask
         Output:
@@ -230,19 +242,31 @@ class GraphSum(nn.Module):
                 z: [N,latent_dim]
         """
         if step=='step':
+            # 이웃 노드 하나도 없는 경우 확인->없을 경우 자기 자신만 true가 되도록 mask 수정
+            no_neighbor=~neighbor_mask.any(dim=1) # [B,] bool vec, 이웃 없는 행은 true로
+            if no_neighbor.any():
+                neighbor_mask[no_neighbor,tar_idx[no_neighbor,0]]=True
+
             h=self.w_1(h) # [batch_size,N,latent_dim] 
             expanded_neighbor_mask=neighbor_mask.unsqueeze(-1).float() # [batch_size,N,1]
             h_hat=(h*expanded_neighbor_mask).sum(dim=1) # [batch_size,latent_dim]
             h_hat=self.relu(h_hat) # [batch_size,latent_dim] 
-            z=torch.cat([target,h_hat],dim=-1) # [batch_size,node_dim+latent_dim+latent_dim+latent_dim]
+            z=torch.cat([tar_vec,h_hat],dim=-1) # [batch_size,node_dim+latent_dim+latent_dim+latent_dim]
             z=self.w_2(z) # [batch_size,latent_dim]
         else: # last
+            # 이웃 노드 하나도 없는 경우 확인->없을 경우 자기 자신만 true가 되도록 mask 수정
+            num_nodes=tar_vec.size(0)
+            no_neighbor=~neighbor_mask.any(dim=1) # [B,] bool vec, 이웃 없는 행은 true로
+            if no_neighbor.any():
+                idx=torch.arange(num_nodes,device=neighbor_mask.device)
+                neighbor_mask[no_neighbor,idx[no_neighbor]]=True
+
             h=self.w_1(h) # [N,latent_dim]
             h=h.unsqueeze(0) # [1,N,latent_dim]
             expanded_neighbor_mask=neighbor_mask.unsqueeze(-1).float() # [N,N,1]
             h_hat=(h*expanded_neighbor_mask).sum(dim=1) # [N,latent_dim]
             h_hat=self.relu(h_hat) # [N,latent_dim]                       
-            z=torch.cat([target,h_hat],dim=-1) # [N,node_dim+latent_dim+latent_dim+latent_dim]         
+            z=torch.cat([tar_vec,h_hat],dim=-1) # [N,node_dim+latent_dim+latent_dim+latent_dim]         
             z=self.w_2(z) # [N,latent_dim]                               
         return z 
 

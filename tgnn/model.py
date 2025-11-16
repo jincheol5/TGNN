@@ -62,7 +62,7 @@ class TGAT(nn.Module):
             h=torch.cat([x,encoded_t],dim=-1) # [B,N,node_dim+latent_dim+latent_dim]
 
             # attention result
-            z=self.attention(target=tar_h,h=h,neighbor_mask=n_mask) # [B,latent_dim]
+            z=self.attention(tar_vec=tar_h,tar_idx=tar.unsqueeze(-1),h=h,neighbor_mask=n_mask) # [B,latent_dim]
             logit=self.linear(z) # [B,1]
             step_logit_list.append(logit)
         """
@@ -91,7 +91,7 @@ class TGAT(nn.Module):
         h=torch.cat([x,encoded_t],dim=-1) # [N,node_dim+latent_dim+latent_dim]
 
         # attention result
-        z=self.attention(target=tar_h,h=h,neighbor_mask=adj_mask,step='last') # [N,latent_dim]
+        z=self.attention(tar_vec=tar_h,h=h,neighbor_mask=adj_mask,step='last') # [N,latent_dim]
         last_logit=self.linear(z) # [N,1]
 
         output={}
@@ -183,7 +183,7 @@ class TGN(nn.Module):
                     delta_t=t[batch_idx,tar,:] # [B,1]
                     z=self.embedding(target_memory=tar_memory,delta_t=delta_t) # [B,latent_dim]
                 case 'attn'|'sum':
-                    z=self.embedding(target=tar_h,h=h,neighbor_mask=n_mask,step='step') # [B,latent_dim]
+                    z=self.embedding(tar_vec=tar_h,tar_idx=tar.unsqueeze(-1),h=h,neighbor_mask=n_mask,step='step') # [B,latent_dim]
 
             logit=self.linear(z) # [B,1]
             step_logit_list.append(logit)
@@ -218,7 +218,7 @@ class TGN(nn.Module):
             case 'time':
                 z=self.embedding(target_memory=last_memory,delta_t=t) # [N,latent_dim]
             case 'attn'|'sum':
-                z=self.embedding(target=tar_h,h=h,neighbor_mask=adj_mask,step='last') # [N,latent_dim]
+                z=self.embedding(tar_vec=tar_h,h=h,neighbor_mask=adj_mask,step='last') # [N,latent_dim]
         last_logit=self.linear(z) # [N,1]
 
         output={}
