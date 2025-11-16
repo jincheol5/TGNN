@@ -70,10 +70,11 @@ class ModelTrainUtils:
         return data_loader
 
     @staticmethod
-    def chunk_loader_worker(chunk_paths:str,buffer_queue:queue.Queue,max_buffer:int=2):
+    def chunk_loader_worker(chunk_paths:str,buffer_queue:queue.Queue):
         """
         chunk_paths: chunk 파일 리스트
         """
+        print(f"Run chunk_loader_worker!")
         for path in chunk_paths:
             with open(path,"rb") as f:
                 data=pickle.load(f)
