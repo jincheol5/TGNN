@@ -27,8 +27,12 @@ class ModelTrainer:
         model train
         """
         chunk_dir_path=os.path.join('..','data','tgnn','train')
+        # chunk_files=sorted(
+        #     [f for f in os.listdir(chunk_dir_path) if f.startswith(f"train_20_chunk_dataset_10_")],
+        #     key=lambda x: int(x.split("_")[-1].split(".")[0])  # 마지막 index 숫자로 정렬
+        # )
         chunk_files=sorted(
-            [f for f in os.listdir(chunk_dir_path) if f.startswith(f"train_20_chunk_dataset_10_")],
+            [f for f in os.listdir(chunk_dir_path) if f.startswith(f"train_20_chunk_dataset_10_") and int(f.split("_")[-1].split(".")[0])>=31],
             key=lambda x: int(x.split("_")[-1].split(".")[0])  # 마지막 index 숫자로 정렬
         )
         chunk_paths=[os.path.join(chunk_dir_path,f) for f in chunk_files]
@@ -71,8 +75,15 @@ class ModelTrainer:
                     pred_last_logit=output['last_logit']
                     step_loss=Metrics.compute_step_tR_loss(logit_list=pred_step_logit_list,label_list=tar_label_list)
                     last_loss=Metrics.compute_last_tR_loss(logit=pred_last_logit,label=last_label)
+
+                    if torch.isnan(step_loss):
+                        print("NaN in step_loss!")
+                    if torch.isnan(last_loss):
+                        print("NaN in last_loss!")
+
                     total_loss=step_loss+last_loss
                     loss_list.append(total_loss)
+                    
                     print(f"loss: {total_loss.item()}")
 
                     # back propagation
