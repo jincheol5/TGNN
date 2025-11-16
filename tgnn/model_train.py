@@ -8,7 +8,29 @@ from .metrics import Metrics
 
 class ModelTrainer:
     @staticmethod
-    def train(model,train_data_loader_list,val_data_loader_list=None,validate:bool=False,config:dict=None):
+    def train(model,train_file_name,val_file_name,validate:bool=False,config:dict=None):
+        device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        model.to(device)
+        optimizer=torch.optim.Adam(model.parameters(),lr=config['lr']) if config['optimizer']=='adam' else torch.optim.SGD(model.parameters(),lr=config['lr'])
+
+        """
+        Early stopping
+        """
+        if config['early_stop']:
+            early_stop=EarlyStopping(patience=config['patience'])
+
+        """
+        model train
+        """
+        for epoch in tqdm(range(config['epochs']),desc=f"Training..."):
+            chunk_files_len=DataUtils.get_chunk_files_len(path='tgnn',chunk_size=config['chunk_size'],dir_type='train')
+            for chunk_idx in range(chunk_files_len):
+                """
+                """
+
+
+    @staticmethod
+    def train_old(model,train_data_loader_list,val_data_loader_list=None,validate:bool=False,config:dict=None):
         device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         model.to(device)
         optimizer=torch.optim.Adam(model.parameters(),lr=config['lr']) if config['optimizer']=='adam' else torch.optim.SGD(model.parameters(),lr=config['lr'])

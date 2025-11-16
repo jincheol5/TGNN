@@ -31,6 +31,16 @@ class DataUtils:
         return data
 
     @staticmethod
+    def get_chunk_files_len(path:Literal['tgnn','trne'],chunk_size:int,dir_type:Literal['train','val','test']):
+        if path=='tgnn':
+            file_path=os.path.join(DataUtils.tgnn_path,dir_type)
+        else: # trne
+            file_path=os.path.join(DataUtils.trne_path,dir_type)
+
+        chunk_files=[f for f in os.listdir(file_path) if f.startswith(f"train_20_chunk_{chunk_size}_")]
+        return len(chunk_files)
+
+    @staticmethod
     def save_dataset_list(dataset_list:list,file_name:str,chunk_size:int,dir_type:Literal['train','val','test']):
         chunk_list=[dataset_list[i:i+chunk_size] for i in range(0,len(dataset_list),chunk_size)]
         for idx,chunk in tqdm(enumerate(chunk_list),desc=f"Saving {file_name}_chunk..."):
