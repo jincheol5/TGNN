@@ -79,6 +79,14 @@ class ModelTrainer:
                     output=model(data_loader=data_loader,device=device)
                     pred_step_logit_list=output['step_logit_list']
                     pred_last_logit=output['last_logit']
+
+                    for i, logit in enumerate(pred_step_logit_list):
+                        if torch.isnan(logit).any() or torch.isinf(logit).any():
+                            print(f"NaN/INF in step_logit_list[{i}] → skip batch")
+
+                    if torch.isnan(pred_last_logit).any() or torch.isinf(pred_last_logit).any():
+                        print("NaN/INF in pred_last_logit → skip batch")
+
                     step_loss=Metrics.compute_step_tR_loss(logit_list=pred_step_logit_list,label_list=tar_label_list)
                     last_loss=Metrics.compute_last_tR_loss(logit=pred_last_logit,label=last_label)
 
