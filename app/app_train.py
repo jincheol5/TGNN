@@ -78,8 +78,8 @@ def app_train(config: dict):
                 'chunk_size':config['chunk_size'],
                 'batch_size':config['batch_size']
             }
-            ModelTrainer.test(model=model,config=test_config)
-
+            step_acc,last_acc=ModelTrainer.test(model=model,config=test_config)
+            print(f"test_{config['num_nodes']} tR step_acc: {step_acc} last_acc: {last_acc}")
 
 if __name__=="__main__":
     """
