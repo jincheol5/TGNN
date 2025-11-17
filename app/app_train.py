@@ -57,6 +57,30 @@ def app_train(config: dict):
                         model_name=f"tgn_{config['emb']}_{config['seed']}_{config['lr']}_{config['batch_size']}"
                 DataUtils.save_model_parameter(model=model,model_name=model_name)
 
+        case 2:
+            """
+            App 2. 
+            test model
+            """
+            match config['model']:
+                case 'tgat':
+                    model_name=f"tgat_{config['seed']}_{config['lr']}_{config['batch_size']}"
+                    model=TGAT(node_dim=1,latent_dim=config['latent_dim'])
+                    model=DataUtils.load_model_parameter(model=model,model_name=config['model_name'])
+                case 'tgn':
+                    model_name=f"tgn_{config['emb']}_{config['seed']}_{config['lr']}_{config['batch_size']}"
+                    model=TGN(node_dim=1,latent_dim=config['latent_dim'],emb=config['emb'])
+                    model=DataUtils.load_model_parameter(model=model,model_name=config['model_name'])
+
+            test_config={
+                'mode':'test',
+                'num_nodes':config['num_nodes'],
+                'chunk_size':config['chunk_size'],
+                'batch_size':config['batch_size']
+            }
+            ModelTrainer.test(model=model,config=test_config)
+
+
 if __name__=="__main__":
     """
     Execute app_train
@@ -86,6 +110,7 @@ if __name__=="__main__":
 
     # 평가
     parser.add_argument("--num_nodes",type=int,default=20)
+    parser.add_argument("--chunk_size",type=int,default=10)
     args=parser.parse_args()
 
     config={
@@ -108,6 +133,7 @@ if __name__=="__main__":
         'wandb':args.wandb,
         'save_model':args.save_model,
         # 평가
-        'num_nodes':args.num_nodes
+        'num_nodes':args.num_nodes,
+        'chunk_size':args.chunk_size
     }
     app_train(config=config)
