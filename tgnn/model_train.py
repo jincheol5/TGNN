@@ -111,7 +111,8 @@ class ModelTrainer:
                 val_config={
                     'mode':'val',
                     'num_nodes':20,
-                    'chunk_size':10
+                    'chunk_size':10,
+                    'batch_size':config['batch_size']
                 }
                 step_acc,last_acc=ModelTrainer.test(model=model,config=val_config)
                 print(f"{epoch+1} epoch tR validation step_acc: {step_acc} last_acc: {last_acc}")
