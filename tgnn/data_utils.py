@@ -9,23 +9,37 @@ class DataUtils:
     tgnn_path=os.path.join('..','data','tgnn')
     trne_path=os.path.join('..','data','trne')
     @staticmethod
-    def save_to_pickle(data,file_name:str,path:Literal['tgnn','trne'],dir_type:Literal['graph','train','val','test']):
+    def save_to_pickle(data,file_name:str,path:Literal['tgnn','trne'],dir_type:Literal['graph','train','val','test'],num_nodes:int=0):
         file_name=file_name+".pkl"
-        if path=='tgnn':
-            file_path=os.path.join(DataUtils.tgnn_path,dir_type,file_name)
-        else: # trne
-            file_path=os.path.join(DataUtils.trne_path,dir_type,file_name)
+        if dir_type=='test':
+            test_path=f"{num_nodes}"
+            if path=='tgnn':
+                file_path=os.path.join(DataUtils.tgnn_path,dir_type,test_path,file_name)
+            else: # trne
+                file_path=os.path.join(DataUtils.trne_path,dir_type,test_path,file_name)
+        else:
+            if path=='tgnn':
+                file_path=os.path.join(DataUtils.tgnn_path,dir_type,file_name)
+            else: # trne
+                file_path=os.path.join(DataUtils.trne_path,dir_type,file_name)
         with open(file_path,'wb') as f:
             pickle.dump(data,f)
         print(f"Save {file_name}")
 
     @staticmethod
-    def load_from_pickle(file_name:str,path:Literal['tgnn','trne'],dir_type:Literal['graph','train','val','test']):
+    def load_from_pickle(file_name:str,path:Literal['tgnn','trne'],dir_type:Literal['graph','train','val','test'],num_nodes:int=0):
         file_name=file_name+".pkl"
-        if path=='tgnn':
-            file_path=os.path.join(DataUtils.tgnn_path,dir_type,file_name)
-        else: # trne
-            file_path=os.path.join(DataUtils.trne_path,dir_type,file_name)
+        if dir_type=='test':
+            test_path=f"{num_nodes}"
+            if path=='tgnn':
+                file_path=os.path.join(DataUtils.tgnn_path,dir_type,test_path,file_name)
+            else: # trne
+                file_path=os.path.join(DataUtils.trne_path,dir_type,test_path,file_name)
+        else:
+            if path=='tgnn':
+                file_path=os.path.join(DataUtils.tgnn_path,dir_type,file_name)
+            else: # trne
+                file_path=os.path.join(DataUtils.trne_path,dir_type,file_name)
         with open(file_path,'rb') as f:
             data=pickle.load(f)
         print(f"Load {file_name}")
@@ -43,7 +57,7 @@ class DataUtils:
 
         chunk_list=[dataseq_list[i:i+chunk_size] for i in range(0,len(dataseq_list),chunk_size)]
         for idx,chunk in tqdm(enumerate(chunk_list),total=len(chunk_list),desc=f"Saving {mode}_{num_nodes}_chunk_{chunk_size}..."):
-            DataUtils.save_to_pickle(data=chunk,file_name=f"{mode}_{num_nodes}_chunk_{chunk_size}_{idx+idx_offset}",path='tgnn',dir_type=dir_type)
+            DataUtils.save_to_pickle(data=chunk,file_name=f"{mode}_{num_nodes}_chunk_{chunk_size}_{idx+idx_offset}",path='tgnn',dir_type=dir_type,num_nodes=num_nodes)
         print(f"Save {mode}_{num_nodes}_chunk_{chunk_size}!")
 
     @staticmethod
@@ -69,7 +83,7 @@ class DataUtils:
 
             chunk_list=[dataseq_list[i:i+chunk_size] for i in range(0,len(dataseq_list),chunk_size)]
             for idx,chunk in tqdm(enumerate(chunk_list),total=len(chunk_list),desc=f"Saving {mode}_{num_nodes}_chunk_{chunk_size}..."):
-                DataUtils.save_to_pickle(data=chunk,file_name=f"{mode}_{num_nodes}_chunk_{chunk_size}_{idx+idx_offset}",path='tgnn',dir_type=dir_type)
+                DataUtils.save_to_pickle(data=chunk,file_name=f"{mode}_{num_nodes}_chunk_{chunk_size}_{idx+idx_offset}",path='tgnn',dir_type=dir_type,num_nodes=num_nodes)
             print(f"Save {mode}_{num_nodes}_chunk_{chunk_size}!")
         else:
             all_dataset_list=[]
