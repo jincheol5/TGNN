@@ -44,7 +44,7 @@ def app_train(config: dict):
                     model=TGAT(node_dim=1,latent_dim=config['latent_dim'])
                 case 'tgn':
                     model=TGN(node_dim=1,latent_dim=config['latent_dim'],emb=config['emb'])
-            ModelTrainer.train(model=model,validate=False,config=config)
+            ModelTrainer.train(model=model,validate=True,config=config)
 
             """
             save model
