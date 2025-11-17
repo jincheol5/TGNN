@@ -66,11 +66,11 @@ def app_train(config: dict):
                 case 'tgat':
                     model_name=f"tgat_{config['seed']}_{config['lr']}_{config['batch_size']}"
                     model=TGAT(node_dim=1,latent_dim=config['latent_dim'])
-                    model=DataUtils.load_model_parameter(model=model,model_name=config['model_name'])
+                    model=DataUtils.load_model_parameter(model=model,model_name=model_name)
                 case 'tgn':
                     model_name=f"tgn_{config['emb']}_{config['seed']}_{config['lr']}_{config['batch_size']}"
                     model=TGN(node_dim=1,latent_dim=config['latent_dim'],emb=config['emb'])
-                    model=DataUtils.load_model_parameter(model=model,model_name=config['model_name'])
+                    model=DataUtils.load_model_parameter(model=model,model_name=model_name)
 
             test_config={
                 'mode':'test',
