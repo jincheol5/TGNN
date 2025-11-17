@@ -126,7 +126,10 @@ class ModelTrainer:
         """
         model evaluate
         """
-        chunk_dir_path=os.path.join('..','data','tgnn',config['mode'])
+        if config['mode']=='val':
+            chunk_dir_path=os.path.join('..','data','tgnn',config['mode'])
+        else: # test
+            chunk_dir_path=os.path.join('..','data','tgnn',config['mode'],f"{config['num_nodes']}")
         chunk_files=sorted(
             [f for f in os.listdir(chunk_dir_path) if f.startswith(f"{config['mode']}_{config['num_nodes']}_chunk_{config['chunk_size']}_")],
             key=lambda x: int(x.split("_")[-1].split(".")[0])  # 마지막 index 숫자로 정렬
