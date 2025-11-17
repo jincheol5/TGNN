@@ -28,7 +28,7 @@ class ModelTrainer:
         """
         chunk_dir_path=os.path.join('..','data','tgnn','train')
         chunk_files=sorted(
-            [f for f in os.listdir(chunk_dir_path) if f.startswith(f"train_20_chunk_dataset_10_")],
+            [f for f in os.listdir(chunk_dir_path) if f.startswith(f"train_20_chunk_10_")],
             key=lambda x: int(x.split("_")[-1].split(".")[0])  # 마지막 index 숫자로 정렬
         )
         chunk_paths=[os.path.join(chunk_dir_path,f) for f in chunk_files]
@@ -46,18 +46,17 @@ class ModelTrainer:
             
             total_chunk=0
             while True:
-                dataset_list=buffer_queue.get()
+                dataseq_list=buffer_queue.get()
                 total_chunk+=1
                 print(f"get one chunk at epoch {epoch+1} total_chunk: {total_chunk}")
 
-                if dataset_list is None:
+                if dataseq_list is None:
                     print(f"finish to get chunk at epoch {epoch+1}")
                     break
                 
                 data_loader_list=[]
-                for dataset in dataset_list:
-                    random_src_id=random.randrange(20)
-                    data_loader=ModelTrainUtils.get_data_loader(dataseq=dataset[random_src_id],batch_size=config['batch_size'])
+                for dataseq in dataseq_list:
+                    data_loader=ModelTrainUtils.get_data_loader(dataseq=dataseq,batch_size=config['batch_size'])
                     data_loader_list.append(data_loader)
 
                 for data_loader in data_loader_list:
@@ -82,7 +81,7 @@ class ModelTrainer:
                     optimizer.step()
                 
                 # 메모리 정리
-                del dataset_list
+                del dataseq_list
                 del data_loader_list
                 del data_loader
 
