@@ -33,7 +33,8 @@ class ModelTrainer:
             key=lambda x: int(x.split("_")[-1].split(".")[0])  # 마지막 index 숫자로 정렬
         )
         chunk_paths=[os.path.join(chunk_dir_path,f) for f in chunk_files]
-        
+        num_chunks=len(chunk_paths) # for tqdm
+
         for epoch in tqdm(range(config['epochs']),desc=f"Training..."):
             model.train()
             loss_list=[]
@@ -45,6 +46,8 @@ class ModelTrainer:
             )
             loader_thread.start()
             
+            # tqdm: 전체 chunk 수 기준
+            pbar=tqdm(total=num_chunks,desc="Training chunks...")
             while True:
                 dataseq_list=buffer_queue.get()
                 if dataseq_list is None:
@@ -78,6 +81,9 @@ class ModelTrainer:
                 del dataseq_list
                 del data_loader_list
                 del data_loader
+
+                # chunk 처리 완료 → tqdm 1 증가
+                pbar.update(1)
 
             # producer thread 종료 대기
             loader_thread.join()
@@ -135,6 +141,7 @@ class ModelTrainer:
             key=lambda x: int(x.split("_")[-1].split(".")[0])  # 마지막 index 숫자로 정렬
         )
         chunk_paths=[os.path.join(chunk_dir_path,f) for f in chunk_files]
+        num_chunks=len(chunk_paths) # for tqdm
 
         buffer_queue=queue.Queue(maxsize=2)
         loader_thread=threading.Thread(
@@ -146,6 +153,9 @@ class ModelTrainer:
         with torch.no_grad():
             step_acc_list=[]
             last_acc_list=[]
+
+            # tqdm: 전체 chunk 수 기준
+            pbar=tqdm(total=num_chunks,desc="Evaluating chunks...")
             while True:
                 dataseq_list=buffer_queue.get()
                 if dataseq_list is None:
@@ -170,6 +180,9 @@ class ModelTrainer:
                     last_acc=Metrics.compute_last_tR_acc(logit=pred_last_logit,label=last_label)
                     step_acc_list.append(step_acc)
                     last_acc_list.append(last_acc)
+                
+                # chunk 처리 완료 → tqdm 1 증가
+                pbar.update(1)
 
         step_acc=float(np.mean(step_acc_list))
         last_acc=float(np.mean(last_acc_list))
