@@ -77,6 +77,7 @@ class ModelTrainUtils:
         print(f"Run chunk_loader_worker!")
         for path in chunk_paths:
             with open(path,"rb") as f:
+                print(f"load chunk file...")
                 data=pickle.load(f)
             buffer_queue.put(data) # 버퍼가 꽉 차면 자동 대기
         buffer_queue.put(None) # 종료 신호
