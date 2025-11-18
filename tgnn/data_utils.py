@@ -29,7 +29,7 @@ class DataUtils:
     @staticmethod
     def load_from_pickle(file_name:str,path:Literal['tgnn','trne'],dir_type:Literal['graph','train','val','test'],num_nodes:int=0):
         file_name=file_name+".pkl"
-        if dir_type=='test':
+        if dir_type=='test' and num_nodes!=0:
             test_path=f"{num_nodes}"
             if path=='tgnn':
                 file_path=os.path.join(DataUtils.tgnn_path,dir_type,test_path,file_name)
