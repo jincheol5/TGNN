@@ -71,7 +71,7 @@ class TGAT(nn.Module):
         x=data_loader[-1]['x'][0] # [N,1]
         t=data_loader[-1]['t'][-1] # [N,1]
         edge_index=data_loader[-1]['edge_index'] # [2,E]
-        adj_mask=GraphUtils.get_adj_mask(num_nodes=num_nodes,edge_index=edge_index) # [N,N]
+        adj_mask=data_loader[-1]['adj_mask'] # [N,N]
         x=x.to(device)
         t=t.to(device)
         edge_index=edge_index.to(device)
@@ -194,7 +194,7 @@ class TGN(nn.Module):
         x=data_loader[-1]['x'][0] # [N,1]
         t=data_loader[-1]['t'][-1] # [N,1]
         edge_index=data_loader[-1]['edge_index'] # [2,E]
-        adj_mask=GraphUtils.get_adj_mask(num_nodes=num_nodes,edge_index=edge_index) # [N,N]
+        adj_mask=data_loader[-1]['adj_mask'] # [N,N]
         x=x.to(device)
         t=t.to(device)
         edge_index=edge_index.to(device)
